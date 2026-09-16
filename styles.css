@@ -1,0 +1,30 @@
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	background-color: goldenrod;
+	padding: 24px;
+}
+
+h1 {
+	color: brown;
+}
+
+a:hover {
+	color: orange;
+}
+
+.cafe {
+	font-size: 18px;
+}
+
+#priority-step {
+	color: green;
+}
+
+.card {
+	background-color: white;
+	padding: 20px;
+	border-radius: 12px;
+	max-width: 600px;
+	margin: 0 auto;
+	border: 1px solid black;
+}
