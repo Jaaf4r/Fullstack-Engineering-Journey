@@ -12,33 +12,39 @@
 	<main class="card">
 		<header class="header">
 			<h1>Vinland Café! ☕</h1>
-			<p class="status">Open today</p>
+			<p class="status open">Open today</p>
 		</header>
 		<section>
 			<h2 id="one">Hot Drinks</h2>
-			<ul>
-				<li>Espresso</li>
-				<li>Macchiato</li>
-				<li>Chocolate coffee</li>
+			<ul id="hot-drinks-list">
+				
 			</ul>
+			<label for="new-hot-drink">New hot drink</label>
+			<input id="new-hot-drink" type="text" placeholder="e.g. Latte" />
+			<button id="add-hot-drink-button" type="button">Add drink</button>
+			<button id="remove-hot-drink-button" type="button">Remove last drink</button>
 		</section>
 		<section>
 			<h2 id="two">Cold Drinks</h2>
-			<ul>
-				<li>Iced Coffee</li>
-				<li>Iced Tea</li>
-				<li>Matcha Tea</li>
+			<ul id="cold-drinks-list">
+				
 			</ul>
+			<label for="new-cold-drink">New cold drink</label>
+			<input id="new-cold-drink" type="text" placeholder="e.g. Orange Juice" />
+			<button id="add-cold-drink-button" type="button">Add drink</button>
+			<button id="remove-cold-drink-button" type="button">Remove last drink</button>
 		</section>
 		<section>
 			<h2 id="three">Desserts</h2>
-			<ul>
-				<li>Chocolate Cake</li>
-				<li>Pecan Cheesecake</li>
-				<li>Amaretto Cheesecake</li>
+			<ul id="desserts-list">
+
 			</ul>
+			<label for="new-dessert">New dessert</label>
+			<input id="new-dessert" type="text" placeholder="e.g. Strawberry Cake" />
+			<button id="add-dessert-button" type="button">Add dessert</button>
+			<button id="remove-dessert-button" type="button">Remove last dessert</button>
 		</section>
-		<footer>
+		<footer id="foot">
 			<a href="https://www.kiriha.jp/cafe/">welcome to Vinland Café</a>
 			<button id="status-button">Check café status</button>
 			<p id="click-count">Status checks: 0</p>
