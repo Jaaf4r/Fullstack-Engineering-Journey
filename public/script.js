@@ -91,14 +91,15 @@ function addNewPricedStuff(nameInput, priceInput, items, list) {
 // const hotDrinks = ["Espresso", "Macchiato", "Chocolate coffee"];
 // hotDrinks.push("Cappuccino");
 
-const hotDrinks = [
-	{ name: "Espresso", price: 2.5 },
-	{ name: "Macchiato", price: 3 },
-	{ name: "Chocolate coffee", price: 3.5 },
-	{ name: "Cappuccino", price: 4 }
-];
+// const hotDrinks = [
+// 	{ name: "Espresso", price: 2.5 },
+// 	{ name: "Macchiato", price: 3 },
+// 	{ name: "Chocolate coffee", price: 3.5 },
+// 	{ name: "Cappuccino", price: 4 }
+// ];
+let hotDrinks = [];
 const hotDrinksList = document.querySelector("#hot-drinks-list");
-displayPricedDrinks(hotDrinks, hotDrinksList);
+// displayPricedDrinks(hotDrinks, hotDrinksList);
 
 // const coldDrinks = ["Iced Coffee", "Iced Tea", "Matcha Tea"];
 const coldDrinks = [
@@ -126,14 +127,57 @@ displayPricedDrinks(desserts, dessertsList);
 const newHotDrinkInput = document.querySelector("#new-hot-drink");
 const newHotDrinkPriceInput = document.querySelector("#new-hot-drink-price");
 const addHotDrinkButton = document.querySelector("#add-hot-drink-button");
+const hotDrinkMessage = document.querySelector("#hot-drink-message");
 
 addHotDrinkButton.addEventListener("click", function () {
-	addNewPricedStuff(
-		newHotDrinkInput,
-		newHotDrinkPriceInput,
-		hotDrinks,
-		hotDrinksList
-	);
+	// addNewPricedStuff(
+	// 	newHotDrinkInput,
+	// 	newHotDrinkPriceInput,
+	// 	hotDrinks,
+	// 	hotDrinksList
+	// );
+
+	const name = newHotDrinkInput.value.trim();
+	const price = Number(newHotDrinkPriceInput.value);
+
+	if (name && price > 0) {
+		const newDrink = {
+			name: name,
+			price: price
+		};
+
+		fetch("/api/menu", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(newDrink)
+		})
+			.then(function (response) {
+				if (!response.ok) {
+					throw new Error("The server could not add the drink.");
+				}
+				return response.json();
+			})
+			.then(function (createdDrink) {
+				hotDrinks.push(createdDrink);
+
+				const listItem = document.createElement("li");
+				listItem.textContent =
+					`${createdDrink.name} — $${createdDrink.price.toFixed(2)}`;
+				hotDrinksList.append(listItem);
+
+				newHotDrinkInput.value = "";
+				newHotDrinkPriceInput.value = "";
+
+				hotDrinkMessage.textContent = 
+					`${createdDrink.name} was added successfully.`;
+			})
+			.catch(function (error) {
+				console.error(error);
+				hotDrinkMessage.textContent = error.message;
+			});
+	}
 });
 
 const newColdDrinkInput = document.querySelector("#new-cold-drink");
@@ -144,7 +188,7 @@ addColdDrinkButton.addEventListener("click", function () {
 	addNewPricedStuff(
 		newColdDrinkInput,
 		newColdDrinkPriceInput,
-		coldDrinks, 
+		coldDrinks,
 		coldDrinksList
 	);
 });
@@ -173,10 +217,42 @@ function removeStuff(stuff, stuffList) {
 	}
 }
 
+function removeLastHotDrink() {
+	const drinkToRemove = hotDrinks[hotDrinks.length - 1];
+
+	if (!drinkToRemove) {
+		return ;
+	}
+
+	fetch(`/api/menu/${drinkToRemove.id}`, {
+		method: "DELETE"
+	})
+		.then(function (response) {
+			if (!response.ok) {
+				throw new Error("The server could not remove the drink.");
+			}
+
+			return response.json();
+		})
+		.then(function (deletedDrink) {
+			hotDrinks.pop();
+			hotDrinksList.lastElementChild.remove();
+
+			hotDrinkMessage.textContent = 
+				`${deletedDrink.name} was removed successfully.`;
+		})
+		.catch(function (error) {
+			console.error(error);
+			hotDrinkMessage.textContent = error.message;
+		});
+}
+
+// const removeHotDrinksButton = document.querySelector("#remove-hot-drink-button");
+// removeHotDrinksButton.addEventListener("click", function () {
+// 	removeStuff(hotDrinks, hotDrinksList);
+// });
 const removeHotDrinksButton = document.querySelector("#remove-hot-drink-button");
-removeHotDrinksButton.addEventListener("click", function () {
-	removeStuff(hotDrinks, hotDrinksList);
-});
+removeHotDrinksButton.addEventListener("click", removeLastHotDrink);
 
 
 const removeColdDrinksButton = document.querySelector("#remove-cold-drink-button");
@@ -190,19 +266,23 @@ removeDessertButton.addEventListener("click", function () {
 });
 
 
-// const espresso = {
-// 	name: "Espresso",
-// 	price: 2.5
-// };
+// -----------------------------------------------------------------
+// FETCH
+// -----------------------------------------------------------------
 
-// console.log(`${espresso.name}: $${espresso.price}`);
+fetch("/api/menu")
+	.then(function (response) {
+		return response.json();
+	})
+	.then(function (menu) {
+		hotDrinks = menu;
+		displayPricedDrinks(hotDrinks, hotDrinksList);
+	});
 
-const sampleMenu = [
-	{ name: "Espresso", price: 2.5 },
-	{ name: "Macchiato", price: 3 },
-	{ name: "Cappuccino", price: 3.5 }
-];
-
-for (const item of sampleMenu) {
-	console.log(`${item.name} : $${item.price}`);
-}
+// fetch("/api/menu", {
+// 	method: "POST",
+// 	headers: {
+// 		"Content-Type": "application/json"
+// 	},
+// 	body: JSON.stringify(newDrink)
+// });
