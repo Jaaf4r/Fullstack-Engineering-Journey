@@ -44,7 +44,7 @@ a:hover {
 	background-color: burlywood;
 	padding: 20px;
 	border-radius: 12px;
-	max-width: 600px;
+	max-width: 650px;
 	margin: 0 auto;
 	border: 1px solid white;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -75,6 +75,32 @@ a:hover {
 
 #foot {
 	margin-top: 20px;
+}
+
+#new-hot-drink {
+	margin-left: 5px;
+	max-width: 150px;
+}
+
+#new-hot-drink-price {
+	max-width: 80px;
+}
+
+#new-cold-drink {
+	max-width: 150px;
+}
+
+#new-cold-drink-price {
+	max-width: 80px;
+}
+
+#new-dessert {
+	margin-left: 10px;
+	max-width: 150px;
+}
+
+#new-dessert-price {
+	max-width: 80px;
 }
 
 
