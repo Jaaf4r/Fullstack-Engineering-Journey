@@ -43,9 +43,22 @@ statusButton.addEventListener("click", updateCafeStatus);
 function displayPricedDrinks(drinks, list) {
 	for (const drink of drinks) {
 		const listItem = document.createElement("li");
-		listItem.textContent = `${drink.name} — $${drink.price.toFixed(2)}`;
+
+		let idPrefix = "";
+
+		if (drink.id) {
+			idPrefix = `#${drink.id} `;
+		}
+
+		listItem.textContent = 
+			`${idPrefix}${drink.name} — $${drink.price.toFixed(2)}`;
 		list.append(listItem);
 	}
+}
+
+function renderHotDrinks() {
+	hotDrinksList.replaceChildren();
+	displayPricedDrinks(hotDrinks, hotDrinksList);
 }
 
 // function addNewStuff(newInput, stuff, stuffList) {
@@ -128,6 +141,9 @@ const newHotDrinkInput = document.querySelector("#new-hot-drink");
 const newHotDrinkPriceInput = document.querySelector("#new-hot-drink-price");
 const addHotDrinkButton = document.querySelector("#add-hot-drink-button");
 const hotDrinkMessage = document.querySelector("#hot-drink-message");
+const updateHotDrinkIdInput = document.querySelector("#update-hot-drink-id");
+const updateHotDrinkPriceInput = document.querySelector("#update-hot-drink-price");
+const updateHotDrinkButton = document.querySelector("#update-hot-drink-button");
 
 addHotDrinkButton.addEventListener("click", function () {
 	// addNewPricedStuff(
@@ -164,7 +180,7 @@ addHotDrinkButton.addEventListener("click", function () {
 
 				const listItem = document.createElement("li");
 				listItem.textContent =
-					`${createdDrink.name} — $${createdDrink.price.toFixed(2)}`;
+					`#${createdDrink.id} ${createdDrink.name} — $${createdDrink.price.toFixed(2)}`;
 				hotDrinksList.append(listItem);
 
 				newHotDrinkInput.value = "";
@@ -172,6 +188,48 @@ addHotDrinkButton.addEventListener("click", function () {
 
 				hotDrinkMessage.textContent = 
 					`${createdDrink.name} was added successfully.`;
+			})
+			.catch(function (error) {
+				console.error(error);
+				hotDrinkMessage.textContent = error.message;
+			});
+	}
+});
+
+updateHotDrinkButton.addEventListener("click", function () {
+	const id = Number(updateHotDrinkIdInput.value);
+	const price = Number(updateHotDrinkPriceInput.value);
+
+	if (id > 0 && price > 0) {
+		fetch(`/api/menu/${id}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({ price: price })
+		})
+			.then(function (response) {
+				if (!response.ok) {
+					throw new Error("The server could not update the price.");
+				}
+
+				return response.json();
+			})
+			.then(function (updatedDrink) {
+				const drink = hotDrinks.find(function (item) {
+					return item.id === updatedDrink.id;
+				});
+
+				if (drink) {
+					drink.price = updatedDrink.price;
+				}
+
+				renderHotDrinks();
+
+				updateHotDrinkIdInput.value = "";
+				updateHotDrinkPriceInput.value = "";
+				hotDrinkMessage.textContent = 
+					`${updatedDrink.name} now costs $${updatedDrink.price.toFixed(2)}.`;
 			})
 			.catch(function (error) {
 				console.error(error);
@@ -272,17 +330,17 @@ removeDessertButton.addEventListener("click", function () {
 
 fetch("/api/menu")
 	.then(function (response) {
+		if (!response.ok) {
+			throw new Error("The server could not load the menu.");
+		}
+
 		return response.json();
 	})
 	.then(function (menu) {
 		hotDrinks = menu;
-		displayPricedDrinks(hotDrinks, hotDrinksList);
+		renderHotDrinks();
+	})
+	.catch(function (error) {
+		console.error(error);
+		hotDrinkMessage.textContent = error.message;
 	});
-
-// fetch("/api/menu", {
-// 	method: "POST",
-// 	headers: {
-// 		"Content-Type": "application/json"
-// 	},
-// 	body: JSON.stringify(newDrink)
-// });

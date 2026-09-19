@@ -30,6 +30,29 @@
 			<button id="add-hot-drink-button" type="button">Add drink</button>
 			<button id="remove-hot-drink-button" type="button">Remove last drink</button>
 			<p id="hot-drink-message" aria-live="polite"></p>
+			
+			<h3>Update a Hot Drink Price</h3>
+
+			<label for="update-hot-drink-id">Drink ID</label>
+			<input
+				id="update-hot-drink-id"
+				type="number"
+				min="1"
+				placeholder="e.g. 1"
+			/>
+
+			<label for="update-hot-drink-price">New price</label>
+			<input
+				id="update-hot-drink-price"
+				type="number"
+				min="0.01"
+				step="0.01"
+				placeholder="e.g. 3.25"
+			/>
+
+			<button id="update-hot-drink-button" type="button">
+				Update price
+			</button>
 		</section>
 		<section>
 			<h2 id="two">Cold Drinks</h2>
