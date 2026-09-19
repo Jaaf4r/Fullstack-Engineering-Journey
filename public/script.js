@@ -1,11 +1,10 @@
 // -----------------------------------------------------------------
-// STATUS CHECK && UPDATE
+// STATUS CHECK
 // -----------------------------------------------------------------
 
 let isOpen = true;
 const statusText = document.querySelector(".status");
 const statusButton = document.querySelector("#status-button");
-
 const clickCountText = document.querySelector("#click-count");
 let clickCount = 0;
 
@@ -29,318 +28,418 @@ function updateCafeStatus() {
 statusButton.addEventListener("click", updateCafeStatus);
 
 // -----------------------------------------------------------------
-// FUNCTIONS (UPDATED)
+// MENU STATE
 // -----------------------------------------------------------------
 
-// function displayDrinks(drinks, list) {
-// 	for (const drink of drinks) {
-// 		const listItem = document.createElement("li");
-// 		listItem.textContent = drink;
-// 		list.append(listItem);
-// 	}
-// }
+let hotDrinks = [];
+let coldDrinks = [];
+let desserts = [];
 
-function displayPricedDrinks(drinks, list) {
-	for (const drink of drinks) {
+let selectedHotDrinkId = null;
+let selectedColdDrinkId = null;
+let selectedDessertId = null;
+
+const hotDrinksList = document.querySelector("#hot-drinks-list");
+const coldDrinksList = document.querySelector("#cold-drinks-list");
+const dessertsList = document.querySelector("#desserts-list");
+
+const newHotDrinkInput = document.querySelector("#new-hot-drink");
+const newHotDrinkPriceInput = document.querySelector("#new-hot-drink-price");
+const addHotDrinkButton = document.querySelector("#add-hot-drink-button");
+const updateHotDrinkPriceInput = document.querySelector("#update-hot-drink-price");
+const updateHotDrinkButton = document.querySelector("#update-hot-drink-button");
+const hotDrinkMessage = document.querySelector("#hot-drink-message");
+
+const newColdDrinkInput = document.querySelector("#new-cold-drink");
+const newColdDrinkPriceInput = document.querySelector("#new-cold-drink-price");
+const addColdDrinkButton = document.querySelector("#add-cold-drink-button");
+const updateColdDrinkPriceInput = document.querySelector("#update-cold-drink-price");
+const updateColdDrinkButton = document.querySelector("#update-cold-drink-button");
+const coldDrinkMessage = document.querySelector("#cold-drink-message");
+
+const newDessertInput = document.querySelector("#new-dessert");
+const newDessertPriceInput = document.querySelector("#new-dessert-price");
+const addDessertButton = document.querySelector("#add-dessert-button");
+const updateDessertPriceInput = document.querySelector("#update-dessert-price");
+const updateDessertButton = document.querySelector("#update-dessert-button");
+const dessertMessage = document.querySelector("#dessert-message");
+
+// -----------------------------------------------------------------
+// API AND DISPLAY HELPERS
+// -----------------------------------------------------------------
+
+function requestMenuApi(url, options, fallbackMessage) {
+	return fetch(url, options)
+		.then(async function (response) {
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.message || fallbackMessage);
+			}
+
+			return data;
+		});
+}
+
+function renderMenuItems(items, list, onEdit, onDelete) {
+	list.replaceChildren();
+
+	for (const item of items) {
 		const listItem = document.createElement("li");
+		listItem.textContent =
+			`${item.name} — $${item.price.toFixed(2)}`;
 
-		let idPrefix = "";
+		const editButton = document.createElement("button");
+		editButton.type = "button";
+		editButton.textContent = "Edit price";
+		editButton.setAttribute("aria-label", `Edit the price of ${item.name}`);
+		editButton.addEventListener("click", function () {
+			onEdit(item);
+		});
 
-		if (drink.id) {
-			idPrefix = `#${drink.id} `;
-		}
+		const deleteButton = document.createElement("button");
+		deleteButton.type = "button";
+		deleteButton.textContent = "Delete";
+		deleteButton.setAttribute("aria-label", `Delete ${item.name}`);
+		deleteButton.addEventListener("click", function () {
+			onDelete(item.id);
+		});
 
-		listItem.textContent = 
-			`${idPrefix}${drink.name} — $${drink.price.toFixed(2)}`;
+		listItem.append(" ", editButton, " ", deleteButton);
 		list.append(listItem);
 	}
 }
 
 function renderHotDrinks() {
-	hotDrinksList.replaceChildren();
-	displayPricedDrinks(hotDrinks, hotDrinksList);
+	renderMenuItems(hotDrinks, hotDrinksList, selectHotDrink, removeHotDrink);
 }
 
-// function addNewStuff(newInput, stuff, stuffList) {
-// 	const newStuff = newInput.value.trim();
+function renderColdDrinks() {
+	renderMenuItems(coldDrinks, coldDrinksList, selectColdDrink, removeColdDrink);
+}
 
-// 	if (newStuff) {
-// 		stuff.push(newStuff);
+function renderDesserts() {
+	renderMenuItems(desserts, dessertsList, selectDessert, removeDessert);
+}
 
-// 		const listItem = document.createElement("li");
-// 		listItem.textContent = newStuff;
-// 		stuffList.append(listItem);
-
-// 		newInput.value = "";
-// 	}
-// }
-
-function addNewPricedStuff(nameInput, priceInput, items, list) {
+function addMenuItem(category, nameInput, priceInput, items, render, messageElement) {
 	const name = nameInput.value.trim();
 	const price = Number(priceInput.value);
 
-	if (name && price > 0) {
-		const newItem = {
-			name: name,
-			price: price
-		};
-
-		items.push(newItem);
-
-		const listItem = document.createElement("li");
-		listItem.textContent = `${newItem.name} — $${newItem.price.toFixed(2)}`;
-		list.append(listItem);
-
-		nameInput.value = "";
-		priceInput.value = "";
+	if (!name || !Number.isFinite(price) || price <= 0) {
+		messageElement.textContent =
+			"Enter a name and a price greater than 0.";
+		return;
 	}
-}
 
-
-// -----------------------------------------------------------------
-// OBJECT DISPLAY
-// -----------------------------------------------------------------
-
-// const hotDrinks = ["Espresso", "Macchiato", "Chocolate coffee"];
-// hotDrinks.push("Cappuccino");
-
-// const hotDrinks = [
-// 	{ name: "Espresso", price: 2.5 },
-// 	{ name: "Macchiato", price: 3 },
-// 	{ name: "Chocolate coffee", price: 3.5 },
-// 	{ name: "Cappuccino", price: 4 }
-// ];
-let hotDrinks = [];
-const hotDrinksList = document.querySelector("#hot-drinks-list");
-// displayPricedDrinks(hotDrinks, hotDrinksList);
-
-// const coldDrinks = ["Iced Coffee", "Iced Tea", "Matcha Tea"];
-const coldDrinks = [
-	{ name: "Iced Coffee", price: 2.5 },
-	{ name: "Iced Tea", price: 4 },
-	{ name: "Matcha Tea", price: 4.5 }
-];
-const coldDrinksList = document.querySelector("#cold-drinks-list");
-displayPricedDrinks(coldDrinks, coldDrinksList);
-
-// const desserts = ["Chocolate Cake", "Pecan Cheesecake", "Amaretto Cheesecake"];
-const desserts = [
-	{ name: "Chocolate Cake", price: 4 },
-	{ name: "Pecan Cheesecake", price: 5.5 },
-	{ name: "Amaretto Cheesecake", price: 6 }
-];
-const dessertsList = document.querySelector("#desserts-list");
-displayPricedDrinks(desserts, dessertsList);
-
-
-// -----------------------------------------------------------------
-// OBJECT ADDITION
-// -----------------------------------------------------------------
-
-const newHotDrinkInput = document.querySelector("#new-hot-drink");
-const newHotDrinkPriceInput = document.querySelector("#new-hot-drink-price");
-const addHotDrinkButton = document.querySelector("#add-hot-drink-button");
-const hotDrinkMessage = document.querySelector("#hot-drink-message");
-const updateHotDrinkIdInput = document.querySelector("#update-hot-drink-id");
-const updateHotDrinkPriceInput = document.querySelector("#update-hot-drink-price");
-const updateHotDrinkButton = document.querySelector("#update-hot-drink-button");
-
-addHotDrinkButton.addEventListener("click", function () {
-	// addNewPricedStuff(
-	// 	newHotDrinkInput,
-	// 	newHotDrinkPriceInput,
-	// 	hotDrinks,
-	// 	hotDrinksList
-	// );
-
-	const name = newHotDrinkInput.value.trim();
-	const price = Number(newHotDrinkPriceInput.value);
-
-	if (name && price > 0) {
-		const newDrink = {
-			name: name,
-			price: price
-		};
-
-		fetch("/api/menu", {
+	requestMenuApi(
+		"/api/menu",
+		{
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(newDrink)
+			body: JSON.stringify({ name: name, price: price, category: category })
+		},
+		"The server could not add the item."
+	)
+		.then(function (createdItem) {
+			items.push(createdItem);
+			render();
+
+			nameInput.value = "";
+			priceInput.value = "";
+			messageElement.textContent =
+				`${createdItem.name} was added successfully.`;
 		})
-			.then(function (response) {
-				if (!response.ok) {
-					throw new Error("The server could not add the drink.");
-				}
-				return response.json();
-			})
-			.then(function (createdDrink) {
-				hotDrinks.push(createdDrink);
+		.catch(function (error) {
+			console.error(error);
+			messageElement.textContent = error.message;
+		});
+}
 
-				const listItem = document.createElement("li");
-				listItem.textContent =
-					`#${createdDrink.id} ${createdDrink.name} — $${createdDrink.price.toFixed(2)}`;
-				hotDrinksList.append(listItem);
+function updateMenuItem(
+	selectedId,
+	priceInput,
+	items,
+	render,
+	messageElement,
+	noSelectionMessage,
+	clearSelection
+) {
+	const price = Number(priceInput.value);
 
-				newHotDrinkInput.value = "";
-				newHotDrinkPriceInput.value = "";
-
-				hotDrinkMessage.textContent = 
-					`${createdDrink.name} was added successfully.`;
-			})
-			.catch(function (error) {
-				console.error(error);
-				hotDrinkMessage.textContent = error.message;
-			});
+	if (selectedId === null) {
+		messageElement.textContent = noSelectionMessage;
+		return;
 	}
-});
 
-updateHotDrinkButton.addEventListener("click", function () {
-	const id = Number(updateHotDrinkIdInput.value);
-	const price = Number(updateHotDrinkPriceInput.value);
+	if (!Number.isFinite(price) || price <= 0) {
+		messageElement.textContent = "Enter a new price greater than 0.";
+		return;
+	}
 
-	if (id > 0 && price > 0) {
-		fetch(`/api/menu/${id}`, {
+	requestMenuApi(
+		`/api/menu/${selectedId}`,
+		{
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json"
 			},
 			body: JSON.stringify({ price: price })
-		})
-			.then(function (response) {
-				if (!response.ok) {
-					throw new Error("The server could not update the price.");
-				}
-
-				return response.json();
-			})
-			.then(function (updatedDrink) {
-				const drink = hotDrinks.find(function (item) {
-					return item.id === updatedDrink.id;
-				});
-
-				if (drink) {
-					drink.price = updatedDrink.price;
-				}
-
-				renderHotDrinks();
-
-				updateHotDrinkIdInput.value = "";
-				updateHotDrinkPriceInput.value = "";
-				hotDrinkMessage.textContent = 
-					`${updatedDrink.name} now costs $${updatedDrink.price.toFixed(2)}.`;
-			})
-			.catch(function (error) {
-				console.error(error);
-				hotDrinkMessage.textContent = error.message;
+		},
+		"The server could not update the price."
+	)
+		.then(function (updatedItem) {
+			const itemIndex = items.findIndex(function (item) {
+				return item.id === updatedItem.id;
 			});
-	}
-});
 
-const newColdDrinkInput = document.querySelector("#new-cold-drink");
-const newColdDrinkPriceInput = document.querySelector("#new-cold-drink-price");
-const addColdDrinkButton = document.querySelector("#add-cold-drink-button");
-
-addColdDrinkButton.addEventListener("click", function () {
-	addNewPricedStuff(
-		newColdDrinkInput,
-		newColdDrinkPriceInput,
-		coldDrinks,
-		coldDrinksList
-	);
-});
-
-const newDessertInput = document.querySelector("#new-dessert");
-const newDessertPriceInput = document.querySelector("#new-dessert-price");
-const addDessertButton = document.querySelector("#add-dessert-button");
-
-addDessertButton.addEventListener("click", function () {
-	addNewPricedStuff(
-		newDessertInput,
-		newDessertPriceInput,
-		desserts,
-		dessertsList
-	);
-});
-
-// -----------------------------------------------------------------
-// REMOVAL
-// -----------------------------------------------------------------
-
-function removeStuff(stuff, stuffList) {
-	if (stuff.length > 0) {
-		stuff.pop();
-		stuffList.lastElementChild.remove();
-	}
-}
-
-function removeLastHotDrink() {
-	const drinkToRemove = hotDrinks[hotDrinks.length - 1];
-
-	if (!drinkToRemove) {
-		return ;
-	}
-
-	fetch(`/api/menu/${drinkToRemove.id}`, {
-		method: "DELETE"
-	})
-		.then(function (response) {
-			if (!response.ok) {
-				throw new Error("The server could not remove the drink.");
+			if (itemIndex !== -1) {
+				items[itemIndex] = updatedItem;
 			}
 
-			return response.json();
-		})
-		.then(function (deletedDrink) {
-			hotDrinks.pop();
-			hotDrinksList.lastElementChild.remove();
-
-			hotDrinkMessage.textContent = 
-				`${deletedDrink.name} was removed successfully.`;
+			clearSelection();
+			render();
+			messageElement.textContent =
+				`${updatedItem.name} now costs $${updatedItem.price.toFixed(2)}.`;
 		})
 		.catch(function (error) {
 			console.error(error);
-			hotDrinkMessage.textContent = error.message;
+			messageElement.textContent = error.message;
 		});
 }
 
-// const removeHotDrinksButton = document.querySelector("#remove-hot-drink-button");
-// removeHotDrinksButton.addEventListener("click", function () {
-// 	removeStuff(hotDrinks, hotDrinksList);
-// });
-const removeHotDrinksButton = document.querySelector("#remove-hot-drink-button");
-removeHotDrinksButton.addEventListener("click", removeLastHotDrink);
+function deleteMenuItem(
+	id,
+	items,
+	render,
+	messageElement,
+	clearSelectionIfDeleted
+) {
+	if (!Number.isInteger(id) || id < 1) {
+		messageElement.textContent = "Could not identify the item to delete.";
+		return;
+	}
 
+	requestMenuApi(
+		`/api/menu/${id}`,
+		{ method: "DELETE" },
+		"The server could not remove the item."
+	)
+		.then(function (deletedItem) {
+			const itemIndex = items.findIndex(function (item) {
+				return item.id === deletedItem.id;
+			});
 
-const removeColdDrinksButton = document.querySelector("#remove-cold-drink-button");
-removeColdDrinksButton.addEventListener("click", function () {
-	removeStuff(coldDrinks, coldDrinksList);
-});
+			if (itemIndex !== -1) {
+				items.splice(itemIndex, 1);
+			}
 
-const removeDessertButton = document.querySelector("#remove-dessert-button");
-removeDessertButton.addEventListener("click", function () {
-	removeStuff(desserts, dessertsList);
-});
-
+			clearSelectionIfDeleted(deletedItem.id);
+			render();
+			messageElement.textContent =
+				`${deletedItem.name} was removed successfully.`;
+		})
+		.catch(function (error) {
+			console.error(error);
+			messageElement.textContent = error.message;
+		});
+}
 
 // -----------------------------------------------------------------
-// FETCH
+// HOT DRINKS
 // -----------------------------------------------------------------
 
-fetch("/api/menu")
-	.then(function (response) {
-		if (!response.ok) {
-			throw new Error("The server could not load the menu.");
-		}
+function selectHotDrink(drink) {
+	selectedHotDrinkId = drink.id;
+	updateHotDrinkPriceInput.value = drink.price;
+	updateHotDrinkPriceInput.focus();
+	hotDrinkMessage.textContent =
+		`Editing ${drink.name}. Enter a new price.`;
+}
 
-		return response.json();
-	})
+function clearHotSelection() {
+	selectedHotDrinkId = null;
+	updateHotDrinkPriceInput.value = "";
+}
+
+function clearHotSelectionIfDeleted(id) {
+	if (selectedHotDrinkId === id) {
+		clearHotSelection();
+	}
+}
+
+function removeHotDrink(id) {
+	deleteMenuItem(
+		id,
+		hotDrinks,
+		renderHotDrinks,
+		hotDrinkMessage,
+		clearHotSelectionIfDeleted
+	);
+}
+
+addHotDrinkButton.addEventListener("click", function () {
+	addMenuItem(
+		"hot",
+		newHotDrinkInput,
+		newHotDrinkPriceInput,
+		hotDrinks,
+		renderHotDrinks,
+		hotDrinkMessage
+	);
+});
+
+updateHotDrinkButton.addEventListener("click", function () {
+	updateMenuItem(
+		selectedHotDrinkId,
+		updateHotDrinkPriceInput,
+		hotDrinks,
+		renderHotDrinks,
+		hotDrinkMessage,
+		"Choose a drink's Edit price button first.",
+		clearHotSelection
+	);
+});
+
+// -----------------------------------------------------------------
+// COLD DRINKS
+// -----------------------------------------------------------------
+
+function selectColdDrink(drink) {
+	selectedColdDrinkId = drink.id;
+	updateColdDrinkPriceInput.value = drink.price;
+	updateColdDrinkPriceInput.focus();
+	coldDrinkMessage.textContent =
+		`Editing ${drink.name}. Enter a new price.`;
+}
+
+function clearColdSelection() {
+	selectedColdDrinkId = null;
+	updateColdDrinkPriceInput.value = "";
+}
+
+function clearColdSelectionIfDeleted(id) {
+	if (selectedColdDrinkId === id) {
+		clearColdSelection();
+	}
+}
+
+function removeColdDrink(id) {
+	deleteMenuItem(
+		id,
+		coldDrinks,
+		renderColdDrinks,
+		coldDrinkMessage,
+		clearColdSelectionIfDeleted
+	);
+}
+
+addColdDrinkButton.addEventListener("click", function () {
+	addMenuItem(
+		"cold",
+		newColdDrinkInput,
+		newColdDrinkPriceInput,
+		coldDrinks,
+		renderColdDrinks,
+		coldDrinkMessage
+	);
+});
+
+updateColdDrinkButton.addEventListener("click", function () {
+	updateMenuItem(
+		selectedColdDrinkId,
+		updateColdDrinkPriceInput,
+		coldDrinks,
+		renderColdDrinks,
+		coldDrinkMessage,
+		"Choose a cold drink's Edit price button first.",
+		clearColdSelection
+	);
+});
+
+// -----------------------------------------------------------------
+// DESSERTS
+// -----------------------------------------------------------------
+
+function selectDessert(dessert) {
+	selectedDessertId = dessert.id;
+	updateDessertPriceInput.value = dessert.price;
+	updateDessertPriceInput.focus();
+	dessertMessage.textContent =
+		`Editing ${dessert.name}. Enter a new price.`;
+}
+
+function clearDessertSelection() {
+	selectedDessertId = null;
+	updateDessertPriceInput.value = "";
+}
+
+function clearDessertSelectionIfDeleted(id) {
+	if (selectedDessertId === id) {
+		clearDessertSelection();
+	}
+}
+
+function removeDessert(id) {
+	deleteMenuItem(
+		id,
+		desserts,
+		renderDesserts,
+		dessertMessage,
+		clearDessertSelectionIfDeleted
+	);
+}
+
+addDessertButton.addEventListener("click", function () {
+	addMenuItem(
+		"dessert",
+		newDessertInput,
+		newDessertPriceInput,
+		desserts,
+		renderDesserts,
+		dessertMessage
+	);
+});
+
+updateDessertButton.addEventListener("click", function () {
+	updateMenuItem(
+		selectedDessertId,
+		updateDessertPriceInput,
+		desserts,
+		renderDesserts,
+		dessertMessage,
+		"Choose a dessert's Edit price button first.",
+		clearDessertSelection
+	);
+});
+
+// -----------------------------------------------------------------
+// INITIAL MENU LOAD
+// -----------------------------------------------------------------
+
+requestMenuApi("/api/menu", undefined, "The server could not load the menu.")
 	.then(function (menu) {
-		hotDrinks = menu;
+		hotDrinks = menu.filter(function (item) {
+			return item.category === "hot";
+		});
+
+		coldDrinks = menu.filter(function (item) {
+			return item.category === "cold";
+		});
+
+		desserts = menu.filter(function (item) {
+			return item.category === "dessert";
+		});
+
 		renderHotDrinks();
+		renderColdDrinks();
+		renderDesserts();
 	})
 	.catch(function (error) {
 		console.error(error);
 		hotDrinkMessage.textContent = error.message;
+		coldDrinkMessage.textContent = error.message;
+		dessertMessage.textContent = error.message;
 	});
