@@ -1,7 +1,27 @@
 body {
 	font-family: Arial, Helvetica, sans-serif;
-	background-color: #a87c3a;
+	background:
+		linear-gradient(rgba(52, 30, 12, 0.3), rgba(52, 30, 12, 0.55)),
+		url("images/vinland-nature.jpg") center / cover fixed;
 	padding: 24px;
+}
+
+.card {
+	background:
+		linear-gradient(rgba(217, 147, 89, 0.8), rgba(207, 141, 87, 0.8)),
+		url("images/vinland-nature.jpg") center / cover fixed;
+	padding: 20px;
+	border-radius: 12px;
+	max-width: 650px;
+	margin: 0 auto;
+	border: 1px solid white;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 h1 {
@@ -38,22 +58,6 @@ a:hover {
 
 #three {
 	color: blueviolet;
-}
-
-.card {
-	background-color: burlywood;
-	padding: 20px;
-	border-radius: 12px;
-	max-width: 650px;
-	margin: 0 auto;
-	border: 1px solid white;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
 }
 
 .status {
